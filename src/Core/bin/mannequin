@@ -1,0 +1,67 @@
+#!/usr/bin/env php
+<?php
+use LastCall\Mannequin\Core\Console\Application;
+use LastCall\Mannequin\Core\Console\Command\StartCommand;
+use LastCall\Mannequin\Kernel;
+use Symfony\Component\Console\Input\ArgvInput;
+use Symfony\Component\Dotenv\Dotenv;
+use LastCall\Mannequin\Core\Console\Command\DebugCommand;
+
+if(PHP_VERSION_ID < 70000) {
+    fwrite(STDERR,
+      PHP_EOL.'Mannequin requires PHP >=7.0'.PHP_EOL.PHP_EOL
+    );
+    die();
+}
+
+$candidates = [
+    __DIR__.'/../vendor/autoload.php',
+    __DIR__.'/../../vendor/autoload.php',
+    __DIR__.'/../../../autoload.php', // Package is installed elsewhere
+    __DIR__.'/../../../vendor/autoload.php',
+];
+
+$autoload_file = false;
+foreach ($candidates as $file) {
+    if (file_exists($file)) {
+        $autoload_file = $file;
+        break;
+    }
+}
+if ($autoload_file) {
+    require_once $autoload_file;
+} else {
+    fwrite(
+      STDERR,
+      'You need to set up the project dependencies using Composer:'.PHP_EOL.PHP_EOL.
+      '    composer install'.PHP_EOL.PHP_EOL.
+      'You can learn all about Composer on https://getcomposer.org/.'.PHP_EOL
+    );
+
+    die(1);
+}
+
+$input = new ArgvInput();
+if (null !== $env = $input->getParameterOption(['--env', '-e'], null, true)) {
+    putenv('APP_ENV='.$_SERVER['APP_ENV'] = $_ENV['APP_ENV'] = $env);
+}
+
+if ($input->hasParameterOption('--no-debug', true)) {
+    putenv('APP_DEBUG='.$_SERVER['APP_DEBUG'] = $_ENV['APP_DEBUG'] = '0');
+}
+
+(new Dotenv())->bootEnv(dirname(__DIR__).'/../../.env');
+
+if ($_SERVER['APP_DEBUG']) {
+    umask(0000);
+
+    if (class_exists(Debug::class)) {
+        Debug::enable();
+    }
+}
+
+
+$kernel = new Kernel($_SERVER['APP_ENV'], (bool) $_SERVER['APP_DEBUG']);
+$app = new Application($kernel);
+
+$app->run();

@@ -1,0 +1,9 @@
+component_render_source_raw:
+    path: /m-source/raw/{component}.txt
+    controller: LastCall\Mannequin\Core\Ui\Controller\RenderController::renderSourceAction
+component_render_raw:
+    path: /m-source/html/{component}/{sample}.txt
+    controller: LastCall\Mannequin\Core\Ui\Controller\RenderController::renderRawAction
+component_render:
+    path: /m-render/{component}/{sample}.html
+    controller: LastCall\Mannequin\Core\Ui\Controller\RenderController::renderAction
